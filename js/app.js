@@ -23,9 +23,12 @@ form.addEventListener('submit', (event) => {
 
     // MAJ de l'affichage
     updateDisplay();
+
+    // Sauvegarde dans localStorage après l'ajout
+    SavedToLocalStorage();
 });
 
-// Met à jour l'affichage de la liste de taches
+// Met à jour l'affichage de la liste de tâches
 function updateDisplay() {
     todoList.innerHTML = ''; // Vider la liste
 
@@ -54,10 +57,11 @@ function updateDisplay() {
         checkbox.classList.add('form-check-input');
         checkbox.checked = todo.done;
 
-        // Gérer le changement de statut de la tache
+        // Gérer le changement de statut de la tâche
         checkbox.addEventListener('change', () => {
             todo.done = checkbox.checked;
-            updateDisplay(); 
+            updateDisplay();
+            SavedToLocalStorage(); // Sauvegarde après modification du statut
         });
 
         // Créer le label de la tâche
@@ -70,11 +74,12 @@ function updateDisplay() {
         deleteBtn.classList.add('btn', 'btn-danger', 'btn-sm');
         deleteBtn.innerHTML = '<i class="bi-trash"></i>';
         deleteBtn.addEventListener('click', () => {
-            todos = todos.filter(t => t.id !== todo.id); // Supprimer la tache
+            todos = todos.filter(t => t.id !== todo.id); // Supprimer la tâche
             updateDisplay();
+            SavedToLocalStorage(); // Sauvegarde après suppression
         });
 
-        // Ajouter les élements au <li>
+        // Ajouter les éléments au <li>
         const formCheck = document.createElement('div');
         formCheck.classList.add('form-check');
         formCheck.appendChild(checkbox);
@@ -97,3 +102,31 @@ filterButtons.forEach(button => {
         updateDisplay(); 
     });
 });
+
+// Chargement des tâches avec fetch()
+fetch('todos.json')
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Erreur lors du chargement des tâches');
+        }
+        return response.json();
+    })
+    .then(data => {
+        todos = data;
+        updateDisplay();
+    })
+    .catch(error => {
+        console.error('Erreur fetch :', error)
+    });
+
+// Charger le LocalStorage si disponible
+const savedTodos = localStorage.getItem('todos');
+if (savedTodos) {
+    todos = JSON.parse(savedTodos);
+    updateDisplay();
+}
+
+// Fonction pour sauvegarder les tâches dans localStorage
+function SavedToLocalStorage() {
+    localStorage.setItem('todos', JSON.stringify(todos));
+}
